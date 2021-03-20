@@ -27,12 +27,12 @@ export function handleTransfer(event: TransferEvent): void {
   }
 
   // Create new ownership
-  let ownership = new Ownership(event.transaction.hash.toHexString())
+  let ownership = new Ownership(event.transaction.hash.toHexString() + user.id + stamp.id)
   ownership.user = user.id
   ownership.stamp = stamp.id
   ownership.start = event.block.timestamp
   ownership.save()
 
-  stamp.currentOwnership = event.transaction.hash.toHexString();
+  stamp.currentOwnership = ownership.id
   stamp.save()
 }

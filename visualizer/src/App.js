@@ -8,69 +8,44 @@ function App() {
 
   useEffect(() => {
     async function fetchData() {
-      let response = await fetch('https://api.thegraph.com/subgraphs/name/jamiepinheiro/nftweet', {
+      let response = await fetch('https://api.thegraph.com/subgraphs/name/jamiepinheiro/crypto-stamps-v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: `
-          {
-            users (first: 10) {
-              id
+        {
+          stamps(first: 1000, skip:1000) {
+            id
+            metadataURI
+            ownerships {
+              user {
+                id
+              }
             }
-          }`
+          }
+        }`
         }),
       });
-      const users = (await response.json()).data.users;
+      const stamps = (await response.json()).data.stamps;
 
-      let tweets = [];
-      let ownerships = [];
+      let users = new Set();
+      let nodes = []
+      let links = []
 
-      for (let i = 0; i < 3; i++ ) {
-        response = await fetch('https://api.thegraph.com/subgraphs/name/jamiepinheiro/nftweet', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: `
-            {
-              tweets (first: 1000, skip: ${i * 1000}) {
-                id
-                tweetID
-                metadataURI
-              }
-            }`
-          }),
+      const blacklist = new Set(["0x23ba98addef64e1fdbdacee2293cbfd5f3d5e7ab"])
+
+      stamps.forEach(stamp => {
+        nodes.push({id: stamp.id, group: 0, label: stamp.id})
+        stamp.ownerships.forEach(ownership => {
+          if (!blacklist.has(ownership.user.id)) {
+            users.add(ownership.user.id)
+            links.push({source: ownership.user.id, target: stamp.id})
+          }
         });
-        tweets = tweets.concat((await response.json()).data.tweets);
-
-        response = await fetch('https://api.thegraph.com/subgraphs/name/jamiepinheiro/nftweet', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: `
-            {
-              ownerships (first: 1000, skip: ${i * 1000}) {
-                id
-                tweet {
-                  id
-                }
-                user {
-                  id
-                }
-                start
-                end
-              }
-            }`
-          }),
-        });
-        ownerships = ownerships.concat((await response.json()).data.ownerships);
-      }
-
-      const nodes = tweets.map(t => {return {id: t.id}}).concat(users.concat(u => {return {id: u.id} }));
-      const ids = new Set(nodes.map(i => i.id));
-
-      const links = ownerships.map(o => {return {source: o.user.id, target: o.tweet.id}}).filter(l => ids.has(l.source) && ids.has(l.target));
-
-      console.log(nodes, links);
+      });
+      nodes = nodes.concat(Array.from(users).map(id => { return {id, group: 1, label: id}}))
 
       const graphData = { nodes, links };
-
+      console.log(graphData);
       setGraphData(graphData);
     }
 
@@ -81,6 +56,9 @@ function App() {
     (graphData ?
     <ForceGraph3D
       graphData={graphData}
+      nodeAutoColorBy={'group'}
+      nodeLabel={'label'}
+      onNodeClick={n => alert(n.label)}
     />
     :
     <h1>loading...</h1>)
