@@ -1,0 +1,19 @@
+type Stamp @entity {
+  id: ID!
+  metadataURI: String!
+  currentOwnership: Ownership!
+  ownerships: [Ownership!]! @derivedFrom(field: "stamp")
+}
+
+type User @entity {
+  id: ID!
+  ownerships: [Ownership!]! @derivedFrom(field: "user")
+}
+
+type Ownership @entity {
+  id: ID!
+  user: User!
+  stamp: Stamp!
+  start: BigInt!
+  end: BigInt
+}

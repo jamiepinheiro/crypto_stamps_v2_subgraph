@@ -1,0 +1,26 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Cryptostamp2
+    network: mainnet
+    source:
+      address: "0xa7f87e8d193e29bf1ed050fdd511b79fe0264d8b"
+      abi: Cryptostamp2
+      startBlock: 10278241
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Stamp
+        - User
+        - Ownership
+      abis:
+        - name: Cryptostamp2
+          file: ./abis/Cryptostamp2.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+      file: ./src/mapping.ts
