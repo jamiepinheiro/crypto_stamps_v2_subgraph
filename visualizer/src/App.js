@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ForceGraph3D } from 'react-force-graph'
-import { Spinner, Card, Form, Col, Image, Badge, Table } from 'react-bootstrap'
+import { Spinner, Card, Form, Col, Image, Badge, Table, ButtonGroup, Button } from 'react-bootstrap'
 
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.css';
@@ -19,6 +19,7 @@ function App() {
   const [focusedNode, setFocusedNode] = useState(null)
   const [nodesMap, setNodesMap] = useState(new Map())
   const [metadata, setMetadata] = useState(null)
+  const [numStamps, setNumStamps] = useState(10)
 
   async function fetchStampData() {
     let response = await fetch('https://api.thegraph.com/subgraphs/name/jamiepinheiro/crypto-stamps-v2', {
@@ -26,7 +27,7 @@ function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: `
       {
-        stamps(first: 1000, skip:1000) {
+        stamps(first: ${numStamps}, skip:1000) {
           id
           metadataURI
           ownerships {
@@ -109,7 +110,7 @@ function App() {
       let metadata = {ownedStamps: [], previouslyOwnedStamps: []}
       graphData.links.forEach(l => {
         if (l.source.id === node.id) {
-          if (l.source.end) {
+          if (l.end) {
             metadata.previouslyOwnedStamps.push(l.target.id)
           } else {
             metadata.ownedStamps.push(l.target.id)
@@ -142,13 +143,18 @@ function App() {
 
   useEffect(() => {
     fetchStampData();
-  }, [])
+  }, [numStamps])
 
   function handleSubmit(event) {
     event.preventDefault();
     if (nodesMap.has(search.current.value)) {
       setFocusedNode(search.current.value)
     }
+  }
+
+  function changeNumStamps(e, numStamps) {
+    e.preventDefault()
+    setNumStamps(numStamps)
   }
 
   return (
@@ -160,13 +166,19 @@ function App() {
             <Card.Body>
               <Card.Title>Graph Settings</Card.Title>
               <Form>
+                <Form.Label>Number of Stamps: {numStamps}</Form.Label>
+                <ButtonGroup className='col-12 mb-3' aria-label="Basic example">
+                  <Button className='col-4' variant={numStamps == 10 ? "secondary" : "secondary"} onClick={(e) => changeNumStamps(e, 10)}>10</Button>
+                  <Button className='col-4' variant={numStamps == 100 ? "light" : "dark"} onClick={(e) => changeNumStamps(e, 100)}>100</Button>
+                  <Button className='col-4' variant={numStamps == 1000 ? "light" : "secondary"} onClick={(e) => changeNumStamps(e, 1000)}>1000</Button>
+                </ButtonGroup>
                 <Form.Row className='align-items-center'>
-                  <Form.Check defaultChecked={true} label='Hide Central Minting Addresses' onChange={e => setHideProtocolConnections(e.target.checked)}/>
+                  <Form.Check defaultChecked={true} label='Hide Central Minting Edges' onChange={e => setHideProtocolConnections(e.target.checked)}/>
                 </Form.Row>
               </Form>
               <hr/>
               <h5>Legend</h5>
-              <Table borderless hover size="sm">
+              <Table borderless size='sm'>
                 <tbody>
                   <tr>
                     <td style={{color: COLORS[1]}}>●</td>
@@ -214,7 +226,7 @@ function App() {
                       {metadata ?
                         <div>
                           <Image className='col-12 text-center mx-auto' src={metadata.image} fluid/>
-                          <Badge  variant="info">Stamp Node</Badge>
+                          <Badge  variant='info'>Stamp Node</Badge>
                           <h4>{metadata.name}</h4>
                           <p>{metadata.description}</p>
                         </div>
@@ -224,14 +236,29 @@ function App() {
                     </div>
                     :
                     <div>
-                      <Badge variant="info">Ethereum Address</Badge>
-                      <br></br>
-                      <a href={`https://etherscan.io/address/${focusedNode}`} target='_blank'>view on etherscan.io</a>
-                      {JSON.stringify(metadata)}
+                      <a href={`https://etherscan.io/address/${focusedNode}`} target='_blank'><Badge variant='info'>Ethereum Address</Badge></a>
+                      {metadata && metadata.ownedStamps && metadata.previouslyOwnedStamps ?
+                        <div style={{height: '30vh', overflow: 'auto'}}>
+                          <Table responsive className='mt-3' bordered size='sm'>
+                            <thead>
+                              <tr>
+                                <th>Currently Owned Stamps</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                                {metadata.ownedStamps.map((id, index) => (
+                                  <tr><td key={index}>{id}</td></tr>
+                                ))}
+                            </tbody>
+                          </Table>
+                        </div>
+                      : 
+                        <Spinner className='mt-5' animation='border' />
+                      }
                     </div>
                 )
                 :
-                ""
+                ''
               }
             </Card.Body>
           </Card>
