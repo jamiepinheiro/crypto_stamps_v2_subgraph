@@ -20,6 +20,7 @@ function App() {
   const [nodesMap, setNodesMap] = useState(new Map())
   const [metadata, setMetadata] = useState(null)
   const [numStamps, setNumStamps] = useState(10)
+  const [offset, setOffset] = useState(1000)
 
   async function fetchStampData() {
     let response = await fetch('https://api.thegraph.com/subgraphs/name/jamiepinheiro/crypto-stamps-v2', {
@@ -27,7 +28,7 @@ function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: `
       {
-        stamps(first: ${numStamps}, skip:1000) {
+        stamps(first: ${numStamps}, skip:${offset}) {
           id
           metadataURI
           ownerships {
@@ -143,7 +144,7 @@ function App() {
 
   useEffect(() => {
     fetchStampData();
-  }, [numStamps])
+  }, [numStamps, offset])
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -171,6 +172,12 @@ function App() {
                   <Button className='col-4' variant={numStamps == 10 ? "secondary" : "secondary"} onClick={(e) => changeNumStamps(e, 10)}>10</Button>
                   <Button className='col-4' variant={numStamps == 100 ? "light" : "dark"} onClick={(e) => changeNumStamps(e, 100)}>100</Button>
                   <Button className='col-4' variant={numStamps == 1000 ? "light" : "secondary"} onClick={(e) => changeNumStamps(e, 1000)}>1000</Button>
+                </ButtonGroup>
+                <Form.Label>Stamp Offset: {offset}</Form.Label>
+                <ButtonGroup className='col-12 mb-3' aria-label="Basic example">
+                  <Button className='col-4' variant={offset == 0 ? "secondary" : "secondary"} onClick={(e) => setOffset(e, 0)}>0</Button>
+                  <Button className='col-4' variant={offset == 1000 ? "light" : "dark"} onClick={(e) => setOffset(e, 1000)}>1000</Button>
+                  <Button className='col-4' variant={offset == 2000 ? "light" : "secondary"} onClick={(e) => setOffset(2000)}>2000</Button>
                 </ButtonGroup>
                 <Form.Row className='align-items-center'>
                   <Form.Check defaultChecked={true} label='Hide Central Minting Edges' onChange={e => setHideProtocolConnections(e.target.checked)}/>
