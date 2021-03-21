@@ -175,8 +175,8 @@ function App() {
                 </ButtonGroup>
                 <Form.Label>Stamp Offset: {offset}</Form.Label>
                 <ButtonGroup className='col-12 mb-3' aria-label="Basic example">
-                  <Button className='col-4' variant={offset == 0 ? "secondary" : "secondary"} onClick={(e) => setOffset(e, 0)}>0</Button>
-                  <Button className='col-4' variant={offset == 1000 ? "light" : "dark"} onClick={(e) => setOffset(e, 1000)}>1000</Button>
+                  <Button className='col-4' variant={offset == 0 ? "secondary" : "secondary"} onClick={(e) => setOffset(0)}>0</Button>
+                  <Button className='col-4' variant={offset == 1000 ? "light" : "dark"} onClick={(e) => setOffset(1000)}>1000</Button>
                   <Button className='col-4' variant={offset == 2000 ? "light" : "secondary"} onClick={(e) => setOffset(2000)}>2000</Button>
                 </ButtonGroup>
                 <Form.Row className='align-items-center'>
